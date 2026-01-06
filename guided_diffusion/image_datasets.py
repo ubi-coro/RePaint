@@ -14,13 +14,14 @@
 #
 # This repository was forked from https://github.com/openai/guided-diffusion, which is under the MIT license
 
-import random
 import os
+import random
 
-from PIL import Image
 import blobfile as bf
 import numpy as np
+from PIL import Image
 from torch.utils.data import DataLoader, Dataset
+
 
 def load_data_yield(loader):
     while True:
@@ -73,7 +74,7 @@ def load_data_inpa(
 
     classes = None
     if class_cond:
-        raise NotImplementedError()
+        pass
 
     dataset = ImageDatasetInpa(
         image_size,

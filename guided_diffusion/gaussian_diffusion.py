@@ -22,13 +22,13 @@ Docstrings have been added, as well as DDIM sampling and a new collection of bet
 """
 
 import enum
+from collections import defaultdict
 
 import numpy as np
 import torch as th
 
-from collections import defaultdict
-
 from guided_diffusion.scheduler import get_schedule_jump
+
 
 def get_named_beta_schedule(schedule_name, num_diffusion_timesteps, use_scale):
     """
@@ -541,6 +541,30 @@ class GaussianDiffusion:
                         image_before_step, image_after_step,
                         est_x_0=out['pred_xstart'], t=t_last_t+t_shift, debug=False)
                     pred_xstart = out["pred_xstart"]
+        else:
+            indices = list(range(self.num_timesteps))[::-1]
+
+            if progress:
+                from tqdm.auto import tqdm
+                indices = tqdm(indices)
+
+            for i in indices:
+                t = th.tensor([i] * shape[0], device=device)
+                with th.no_grad():
+                    out = self.p_sample(
+                        model,
+                        image_after_step,
+                        t,
+                        clip_denoised=clip_denoised,
+                        denoised_fn=denoised_fn,
+                        cond_fn=cond_fn,
+                        model_kwargs=model_kwargs,
+                        conf=conf,
+                        pred_xstart=pred_xstart
+                    )
+                    pred_xstart = out["pred_xstart"]
+                    image_after_step = out["sample"]
+                    yield out
 
 def _extract_into_tensor(arr, timesteps, broadcast_shape):
     """

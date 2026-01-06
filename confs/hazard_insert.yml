@@ -1,0 +1,81 @@
+# BASE MODEL: ImageNet 256
+attention_resolutions: 32,16,8
+class_cond: true
+diffusion_steps: 1000
+learn_sigma: true
+noise_schedule: linear
+num_channels: 256
+num_head_channels: 64
+num_heads: 4
+num_res_blocks: 2
+resblock_updown: true
+use_fp16: true
+use_scale_shift_norm: true
+
+# --- CRITICAL FOR INSERTION ---
+# 1.0 is for cleaning up images. 
+# 10.0 - 20.0 is for forcing objects into places they don't belong.
+classifier_scale: 10.0 
+# -----------------------------
+
+lr_kernel_n_std: 2
+num_samples: 100 # How many variations per mask do you want?
+show_progress: true
+timestep_respacing: '250'
+use_kl: false
+predict_xstart: false
+rescale_timesteps: false
+rescale_learned_sigmas: false
+
+# CLASSIFIER SETTINGS
+classifier_use_fp16: false
+classifier_width: 128
+classifier_depth: 2
+classifier_attention_resolutions: 32,16,8
+classifier_use_scale_shift_norm: true
+classifier_resblock_updown: true
+classifier_pool: attention
+num_heads_upsample: -1
+channel_mult: ''
+dropout: 0.0
+use_checkpoint: false
+use_new_attention_order: false
+clip_denoised: true
+use_ddim: false
+
+image_size: 256
+
+# PATHS (Ensure these match your folder structure)
+classifier_path: ./data/pretrained/256x256_classifier.pt
+model_path: ./data/pretrained/256x256_diffusion.pt
+
+name: hazard_insert
+inpa_inj_sched_prev: true
+n_jobs: 1
+print_estimated_vars: true
+inpa_inj_sched_prev_cumnoise: false
+
+# DATA LOADING
+data:
+  eval:
+    hazard_loader:
+      mask_loader: true
+      # You need to point these to where your crop/mask pairs are
+      gt_path: ./data/datasets/gts/hazard_crops
+      mask_path: ./data/datasets/gt_keep_masks/hazard_crops
+      image_size: 256
+      class_cond: true
+      deterministic: true # Set false if you want variations
+      random_crop: false
+      random_flip: false
+      return_dict: true
+      drop_last: false
+      batch_size: 1
+      return_dataloader: true
+      ds_conf:
+        name: hazard_insert_job
+      paths:
+        srs: ./log/hazard_insert/output
+        lrs: ./log/hazard_insert/masked_input
+        gts: ./log/hazard_insert/ground_truth
+        gt_keep_masks: ./log/hazard_insert/masks
